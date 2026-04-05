@@ -13,7 +13,7 @@ custom_palette = {
 }
 
 def set_custom_style():
-    sns.set_theme(style="white", palette="viridis")
+    sns.set_theme(style="whitegrid", palette="viridis")
     sns.set_context("notebook", font_scale=1.1)
     
     plt.rcParams['axes.spines.top'] = False
@@ -22,24 +22,27 @@ def set_custom_style():
     plt.rcParams['figure.dpi'] = 100
     plt.rcParams['figure.figsize'] = (10, 6)
 
-def initial_analysis():
+def initial_analysis(moving_average=0):
     csv_path = "datasets/big-5-scaled.csv"
-    
-    df = pd.read_csv(csv_path)
-
-    sns.set_theme(style="whitegrid")
 
     x_axis_label = "Час (роки та місяці)"
     y_axis_label = "Відносна популярність запитів"
     season_label = "Сезонний всплеск запитів (листоп.-груд.)"
-    chart_title = "Порівняння популярності українських онлайн-магазинів"
+    chart_title = f"Порівняння пошукових запитів на сайти українських онлайн-магазинів (середнє знач. за {moving_average} міс.)"
 
-    # 4. Melt the data
-    # Seaborn works best when data is "Long Format" 
-    # (One column for 'Store Name', one for 'Value')
-    df_long = df.melt(id_vars=["Time"], value_vars=df.columns[3:], 
-                      var_name="Retailer", value_name="Scaled Value")
+    df = pd.read_csv(csv_path)
+    retailer_cols = df.columns[3:]
 
+    if moving_average > 1:
+        df[retailer_cols] = df[retailer_cols].rolling(window=moving_average, center=True, min_periods=1).mean()
+
+    # Melt the data for Seaborn
+    df_long = df.melt(id_vars=["Time"], 
+                    value_vars=retailer_cols, 
+                    var_name="Retailer", 
+                    value_name="Scaled Value")
+
+    set_custom_style()
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.lineplot(data=df_long, x="Time", y="Scaled Value", hue="Retailer", ax=ax, palette=custom_palette)
 
@@ -72,6 +75,8 @@ def initial_analysis():
     plt.xlabel(x_axis_label)
     plt.ylabel(y_axis_label)
 
+    # Draw 3-month lines
+
     ax.vlines(x=np.arange(0, 270, 3), ymin=0, ymax=1, 
           colors='lightgray', linestyle=':', linewidth=1)
 
@@ -81,4 +86,5 @@ def initial_analysis():
     plt.tight_layout()
     plt.show()
 
-initial_analysis()
+initial_analysis(moving_average=1)
+initial_analysis(moving_average=12)
