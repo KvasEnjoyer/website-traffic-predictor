@@ -1,14 +1,13 @@
 import pandas as pd
 import os
 
-def add_precision():
+def clean_data():
     try:
         main_csv_path = './datasets/big-5-traffic.csv'
         precise_files_folder = './datasets/precision-enhancement-ds'
-        output_folder = './datasets/'
+        output_file = './datasets/big-5-scaled.csv'
 
-        if not os.path.isdir(output_folder):
-            os.makedirs(output_folder, exist_ok=True)
+        all_scaled_dfs = []
 
         df_main = pd.read_csv(main_csv_path, index_col='Time', parse_dates=True) # Combined data for the websites
 
@@ -31,15 +30,18 @@ def add_precision():
                     # Compress the full range of df_precise to range [0; peak_value] and replace original.
                     df_precise[column_name] = df_precise[column_name] * (peak_value / 100)
                     
-                    output_path = os.path.join(output_folder, f"scaled_{filename}")
-                    df_precise.to_csv(output_path)
-
-                    print(f"Processed {column_name}: precision improved successfully.")
-                else:
-                    print(f"Skipping {filename}: Column '{column_name}' not found in main CSV.")
-
-        print("Task complete. Files are in the 'processed_output' folder.")
+                    all_scaled_dfs.append(df_precise)
+                    print(f"Scaled {column_name} to {peak_value}")
+            else:
+                print(f"Skipping {filename}: '{column_name}' not in Main CSV.")
+        if all_scaled_dfs:
+            df_merged = pd.concat(all_scaled_dfs, axis=1) # Merge based on the 'Time' index
+            
+            df_merged.to_csv(output_file)
+            print(f"All files processed and saved to {output_file} successfully.")
+        else:
+            print("No matching files were found to process.")
     except Exception as e:
         print(e)
 
-add_precision()
+clean_data()
