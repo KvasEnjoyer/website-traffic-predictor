@@ -36,6 +36,7 @@ def clean_data():
                 print(f"Skipping {filename}: '{column_name}' not in Main CSV.")
         if all_scaled_dfs:
             df_merged = pd.concat(all_scaled_dfs, axis=1) # Merge based on the 'Time' index
+            df_merged = df_merged / 100
             
             df_merged.to_csv(output_file)
             print(f"All files processed and saved to {output_file} successfully.")
