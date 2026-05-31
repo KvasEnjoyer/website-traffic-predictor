@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from scipy import stats
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
